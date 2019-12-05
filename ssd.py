@@ -93,14 +93,14 @@ class SSD(nn.Module):
             loc.append(l(x).permute(0, 2, 3, 1).contiguous())
             conf.append(c(x).permute(0, 2, 3, 1).contiguous())
 
-        loc = torch.cat([o.view(o.size(0), -1) for o in loc], 1)
-        conf = torch.cat([o.view(o.size(0), -1) for o in conf], 1)
+        loc = torch.cat([o.view(o.size(0), -1) for o in loc], 1)   # [1, 34928]   34928  = 8732个框 x 4
+        conf = torch.cat([o.view(o.size(0), -1) for o in conf], 1) # [1, 183372]  183372 = 8732个框 x 21
         if self.phase == "test":
             output = self.detect(
-                loc.view(loc.size(0), -1, 4),                   # loc preds
+                loc.view(loc.size(0), -1, 4),                   # loc preds      [1, 8732, 4]
                 self.softmax(conf.view(conf.size(0), -1,
-                             self.num_classes)),                # conf preds
-                self.priors.type(type(x.data))                  # default boxes
+                             self.num_classes)),                # conf preds     [1, 8732, 21]
+                self.priors.type(type(x.data))                  # default boxes  [8732, 4]
             )
         else:
             output = (
@@ -207,3 +207,14 @@ def build_ssd(phase, size=300, num_classes=21):
                                      add_extras(extras[str(size)], 1024),
                                      mbox[str(size)], num_classes)
     return SSD(phase, size, base_, extras_, head_, num_classes)
+
+
+if __name__ == '__main__':
+
+    ssd_net = build_ssd('train')
+
+    x = torch.randn(1,3,300,300)
+
+    o1, o2, o3 = ssd_net(x)
+
+    print(o1.shape, o2.shape, o3.shape)

@@ -85,6 +85,8 @@ def test_voc():
     print('Finished loading model!')
     # load data
     testset = VOCDetection(args.voc_root, [('2007', 'test')], None, VOCAnnotationTransform())
+
+    args.cuda = False  # add line
     if args.cuda:
         net = net.cuda()
         cudnn.benchmark = True

@@ -182,3 +182,18 @@ class VOCDetection(data.Dataset):
             tensorized version of img, squeezed
         '''
         return torch.Tensor(self.pull_image(index)).unsqueeze_(0)
+
+
+if __name__ == '__main__':
+    from augmentations import SSDAugmentation
+    dataset = VOCDetection(VOC_ROOT, transform=SSDAugmentation(300, (104, 117, 123)))
+    src_img = dataset.pull_image(2)
+    print(src_img.shape)
+    cv2.imshow('test', src_img)
+    cv2.waitKey(0)
+
+    img, gt, h, w = dataset.pull_item(2)
+    print(img.shape)
+    print(gt, h, w)
+    cv2.imshow('test2', img.numpy().transpose(1,2,0))
+    cv2.waitKey(0)

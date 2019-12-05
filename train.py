@@ -180,8 +180,11 @@ def train():
         loss.backward()
         optimizer.step()
         t1 = time.time()
-        loc_loss += loss_l.data[0]
-        conf_loss += loss_c.data[0]
+
+        # loc_loss += loss_l.data[0]
+        # conf_loss += loss_c.data[0]
+        loc_loss += loss_l.item()  # change line
+        conf_loss += loss_c.item()  # change line
 
         if iteration % 10 == 0:
             print('timer: %.4f sec.' % (t1 - t0))
