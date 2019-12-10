@@ -35,7 +35,7 @@ if not os.path.exists(args.save_folder):
     os.mkdir(args.save_folder)
 
 
-def test_net(save_folder, net, cuda, testset, transform, thresh):
+def net_test(save_folder, net, cuda, testset, transform, thresh):
     # dump predictions and assoc. ground truth to text file for now
     filename = save_folder+'test1.txt'
     num_images = len(testset)
@@ -76,7 +76,7 @@ def test_net(save_folder, net, cuda, testset, transform, thresh):
                 j += 1
 
 
-def test_voc():
+def voc_test():
     # load net
     num_classes = len(VOC_CLASSES) + 1 # +1 background
     net = build_ssd('test', 300, num_classes) # initialize SSD
@@ -91,9 +91,9 @@ def test_voc():
         net = net.cuda()
         cudnn.benchmark = True
     # evaluation
-    test_net(args.save_folder, net, args.cuda, testset,
+    net_test(args.save_folder, net, args.cuda, testset,
              BaseTransform(net.size, (104, 117, 123)),
              thresh=args.visual_threshold)
 
 if __name__ == '__main__':
-    test_voc()
+    voc_test()
