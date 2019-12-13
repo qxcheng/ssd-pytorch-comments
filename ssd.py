@@ -213,7 +213,7 @@ class SSD(nn.Module):
 
 if __name__ == '__main__':
 
-    ssd_net = build_ssd('train')
+    ssd_net = build_ssd('test')
 
     x = torch.randn(1,3,300,300)
 
