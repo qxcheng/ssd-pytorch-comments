@@ -18,11 +18,11 @@ class Detect(Function):
 
     def forward(self, loc_data, conf_data, prior_data):
         """
-            loc_data:   [batch, num_priors, 4]
-            conf_data:  [batch, num_priors, num_classes]
-            prior_data: [num_priors, 4]
+            loc_data:   [batch, num_priors, 4]            (1, 8732, 4)
+            conf_data:  [batch, num_priors, num_classes]  (1, 8732, 21)
+            prior_data: [num_priors, 4]                   (8732, 4)
         """
-        num = loc_data.size(0)                                                         # batch size = 1
+        num = loc_data.size(0)                                                         # batch: 1
         num_priors = prior_data.size(0)                                                # 8732
         output = torch.zeros(num, self.num_classes, self.top_k, 5)                     # (1, 21, 200, 5)
         conf_preds = conf_data.view(num, num_priors, self.num_classes).transpose(2, 1) # (1, 21, 8732)

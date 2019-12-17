@@ -77,13 +77,12 @@ def net_test(save_folder, net, cuda, testset, transform, thresh):
 
 
 def voc_test():
-    # load net
-    num_classes = len(VOC_CLASSES) + 1 # +1 background
-    net = build_ssd('test', 300, num_classes) # initialize SSD
+    num_classes = len(VOC_CLASSES) + 1                   # +1 background
+    net = build_ssd('test', 300, num_classes)            # initialize SSD
     net.load_state_dict(torch.load(args.trained_model))
     net.eval()
     print('Finished loading model!')
-    # load data
+
     testset = VOCDetection(args.voc_root, [('2007', 'test')], None, VOCAnnotationTransform())
 
     args.cuda = False  # add line
@@ -96,4 +95,9 @@ def voc_test():
              thresh=args.visual_threshold)
 
 if __name__ == '__main__':
-    voc_test()
+    #voc_test()
+
+
+    dataset = VOCDetection(args.voc_root, [('2007', 'test')], None, VOCAnnotationTransform())
+    src_img = dataset.pull_item(2)
+

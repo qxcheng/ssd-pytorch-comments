@@ -81,7 +81,7 @@ Conv2d(512, 24, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),    (1,128,10
 Conv2d(256, 24, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),    (1,128,5,5)    ->permute (1,5,5,24)    -> (1,600)
 Conv2d(256, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),    (1,128,3,3)    ->permute (1,3,3,16)    -> (1,144)
 Conv2d(256, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1),     (1,256,1,1)    ->permute (1,1,1,16)    -> (1,16)
-拼接为：(1,34928)
+拼接为：(1,34928) -> [1, 8732, 4]
 [conf]
 Conv2d(512, 84, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),    (1,512,38,38)  ->permute (1,38,38,84)  -> (1,121296)
 Conv2d(1024, 126, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),  (1,1024,19,19) ->permute (1,19,19,126) -> (1,45486)
@@ -89,4 +89,4 @@ Conv2d(512, 126, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),   (1,128,10
 Conv2d(256, 126, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),   (1,128,5,5)    ->permute (1,5,5,126)   -> (1,3150)
 Conv2d(256, 84, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)),    (1,128,3,3)    ->permute (1,3,3,84)    -> (1,756)
 Conv2d(256, 84, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))     (1,256,1,1)    ->permute (1,1,1,84)    -> (1,84)
-拼接为：(1,183372)
+拼接为：(1,183372) -> [1, 8732, 21]
