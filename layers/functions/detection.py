@@ -34,12 +34,12 @@ class Detect(Function):
             conf_scores = conf_preds[i].clone()                                        # (21, 8732)
 
             for cl in range(1, self.num_classes):
-                c_mask = conf_scores[cl].gt(self.conf_thresh)                          # (8732)
-                scores = conf_scores[cl][c_mask]                                       # (8732)
+                c_mask = conf_scores[cl].gt(self.conf_thresh)                          # (8732)    01真值表
+                scores = conf_scores[cl][c_mask]                                       # (num)
                 if scores.size(0) == 0:
                     continue
-                l_mask = c_mask.unsqueeze(1).expand_as(decoded_boxes)                  # (8732, 4)
-                boxes = decoded_boxes[l_mask].view(-1, 4)                              # (8732, 4)
+                l_mask = c_mask.unsqueeze(1).expand_as(decoded_boxes)                  # (8732, 4) 01真值表
+                boxes = decoded_boxes[l_mask].view(-1, 4)                              # (num, 4)
                 # idx of highest scoring and non-overlapping boxes per class
                 ids, count = nms(boxes, scores, self.nms_thresh, self.top_k)           # (8732) int=74
                 output[i, cl, :count] = torch.cat((scores[ids[:count]].unsqueeze(1),

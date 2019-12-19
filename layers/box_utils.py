@@ -37,9 +37,9 @@ def intersect(box_a, box_b):
     Return:
       (tensor) intersection area, Shape: [A,B].
     """
-    A = box_a.size(0)
-    B = box_b.size(0)
-    max_xy = torch.min(box_a[:, 2:].unsqueeze(1).expand(A, B, 2),
+    A = box_a.size(0)                                              # num_tar
+    B = box_b.size(0)                                              # 8732
+    max_xy = torch.min(box_a[:, 2:].unsqueeze(1).expand(A, B, 2),  #
                        box_b[:, 2:].unsqueeze(0).expand(A, B, 2))
     min_xy = torch.max(box_a[:, :2].unsqueeze(1).expand(A, B, 2),
                        box_b[:, :2].unsqueeze(0).expand(A, B, 2))
@@ -69,6 +69,9 @@ def jaccard(box_a, box_b):
 
 
 def match(threshold, truths, priors, variances, labels, loc_t, conf_t, idx):
+    #threshold:0.5  truths:(num_tar, 4)  priors:(8732, 4)  variances:[0.1, 0.2]
+    #labels:(num_tar)  loc_t:(1, 8732, 4)  conf_t:(1, 8732)  idx:batch-int
+
     """Match each prior box with the ground truth box of the highest jaccard
     overlap, encode the bounding boxes, then return the matched indices
     corresponding to both confidence and location preds.
@@ -86,30 +89,27 @@ def match(threshold, truths, priors, variances, labels, loc_t, conf_t, idx):
         The matched indices corresponding to 1)location and 2)confidence preds.
     """
     # jaccard index
-    overlaps = jaccard(
-        truths,
-        point_form(priors)
-    )
+    overlaps = jaccard(truths, point_form(priors))                      # (num_tar, 8732)
     # (Bipartite Matching)
     # [1,num_objects] best prior for each ground truth
-    best_prior_overlap, best_prior_idx = overlaps.max(1, keepdim=True)
+    best_prior_overlap, best_prior_idx = overlaps.max(1, keepdim=True)  # (num_tar, 1)  (num_tar, 1)
     # [1,num_priors] best ground truth for each prior
-    best_truth_overlap, best_truth_idx = overlaps.max(0, keepdim=True)
-    best_truth_idx.squeeze_(0)
-    best_truth_overlap.squeeze_(0)
-    best_prior_idx.squeeze_(1)
-    best_prior_overlap.squeeze_(1)
-    best_truth_overlap.index_fill_(0, best_prior_idx, 2)  # ensure best prior
+    best_truth_overlap, best_truth_idx = overlaps.max(0, keepdim=True)  # (1, 8732)  (1, 8732)
+    best_truth_idx.squeeze_(0)                                          # (8732)     [0,1,2,0...]
+    best_truth_overlap.squeeze_(0)                                      # (8732)
+    best_prior_idx.squeeze_(1)                                          # (num_tar)  [200,1000,3000]
+    best_prior_overlap.squeeze_(1)                                      # (num_tar)
+    best_truth_overlap.index_fill_(0, best_prior_idx, 2)                # (8732)     ensure best prior
     # TODO refactor: index  best_prior_idx with long tensor
     # ensure every gt matches with its prior of max overlap
     for j in range(best_prior_idx.size(0)):
         best_truth_idx[best_prior_idx[j]] = j
-    matches = truths[best_truth_idx]          # Shape: [num_priors,4]
-    conf = labels[best_truth_idx] + 1         # Shape: [num_priors]
+    matches = truths[best_truth_idx]          # (8732, 4)
+    conf = labels[best_truth_idx] + 1         # (8732)
     conf[best_truth_overlap < threshold] = 0  # label as background
-    loc = encode(matches, priors, variances)
-    loc_t[idx] = loc    # [num_priors,4] encoded offsets to learn
-    conf_t[idx] = conf  # [num_priors] top class label for each prior
+    loc = encode(matches, priors, variances)  # (8732, 4)
+    loc_t[idx] = loc                          # (1, 8732, 4) encoded offsets to learn
+    conf_t[idx] = conf                        # (1, 8732)    top class label for each prior
 
 
 def encode(matched, priors, variances):
