@@ -13,15 +13,12 @@ from data import VOCAnnotationTransform, VOCDetection, BaseTransform, VOC_CLASSE
 import torch.utils.data as data
 from ssd import build_ssd
 
+
 parser = argparse.ArgumentParser(description='Single Shot MultiBox Detection')
-parser.add_argument('--trained_model', default='weights/ssd_300_VOC0712.pth',
-                    type=str, help='Trained state_dict file path to open')
-parser.add_argument('--save_folder', default='eval/', type=str,
-                    help='Dir to save results')
-parser.add_argument('--visual_threshold', default=0.6, type=float,
-                    help='Final confidence threshold')
-parser.add_argument('--cuda', default=True, type=bool,
-                    help='Use cuda to train model')
+parser.add_argument('--trained_model', default='weights/ssd_300_VOC0712.pth', type=str, help='Trained state_dict file path to open')
+parser.add_argument('--save_folder', default='eval/', type=str, help='Dir to save results')
+parser.add_argument('--visual_threshold', default=0.6, type=float, help='Final confidence threshold')
+parser.add_argument('--cuda', default=True, type=bool, help='Use cuda to train model')
 parser.add_argument('--voc_root', default=VOC_ROOT, help='Location of VOC root directory')
 parser.add_argument('-f', default=None, type=str, help="Dummy arg so we can load in Jupyter Notebooks")
 args = parser.parse_args()
@@ -83,9 +80,8 @@ def voc_test():
     net.eval()
     print('Finished loading model!')
 
-    testset = VOCDetection(args.voc_root, [('2007', 'test')], None, VOCAnnotationTransform())
+    testset = VOCDetection(args.voc_root, [('2007', 'val')], None, VOCAnnotationTransform())
 
-    args.cuda = False  # add line
     if args.cuda:
         net = net.cuda()
         cudnn.benchmark = True
@@ -94,10 +90,57 @@ def voc_test():
              BaseTransform(net.size, (104, 117, 123)),
              thresh=args.visual_threshold)
 
+
+def predict():
+    import cv2
+    import matplotlib.pyplot as plt
+
+    num_classes = len(VOC_CLASSES) + 1  # +1 background
+    net = build_ssd('test', 300, num_classes)  # initialize SSD
+    net.load_state_dict(torch.load(args.trained_model))
+    net.eval()
+    print('Finished loading model!')
+
+    net = net.cuda()
+    cudnn.benchmark = True
+
+    img_path = './demo/000186.jpg'
+    transform = BaseTransform(net.size, (104, 117, 123))
+
+    img = cv2.imread(img_path, cv2.IMREAD_COLOR)
+    x = torch.from_numpy(transform(img)[0]).permute(2, 0, 1)
+    x = Variable(x.unsqueeze(0))
+    x = x.cuda()
+
+    y = net(x)  # forward pass
+    detections = y.data
+
+    scale = torch.Tensor([img.shape[1], img.shape[0],
+                          img.shape[1], img.shape[0]])
+
+    for i in range(detections.size(1)):
+        j = 0
+        while detections[0, i, j, 0] >= 0.6:
+            score = detections[0, i, j, 0]
+            label_name = labelmap[i - 1]
+            print(label_name)
+            pt = (detections[0, i, j, 1:] * scale).cpu().numpy()
+            coords = (pt[0], pt[1], pt[2], pt[3])
+
+            plt.figure()
+            plt.imshow(img)
+            plt.gca().add_patch(plt.Rectangle(xy=(pt[0], pt[1]),
+                                              width=pt[2] - pt[0],
+                                              height=pt[3] - pt[1],
+                                              edgecolor=(0.5,0.5,0.5,1),
+                                              fill=False, linewidth=2))
+            plt.show()
+
+
 if __name__ == '__main__':
     #voc_test()
+    predict()
 
 
-    dataset = VOCDetection(args.voc_root, [('2007', 'test')], None, VOCAnnotationTransform())
-    src_img = dataset.pull_item(2)
+
 
